@@ -5,6 +5,35 @@ from typing import Any, Dict, List
 from app.models import InvocationMetrics
 
 
+# -----------------------------
+# In-memory metrics buffer
+# -----------------------------
+_METRICS_BUFFER: List[InvocationMetrics] = []
+
+
+def ingest_metrics(metrics: List[InvocationMetrics]) -> Dict[str, Any]:
+    """
+    Store invocation metrics in memory buffer.
+    """
+    global _METRICS_BUFFER
+
+    _METRICS_BUFFER.extend(metrics)
+
+    latest_ts = metrics[-1].timestamp if metrics else None
+
+    return {
+        "ingested_count": len(metrics),
+        "latest_timestamp": latest_ts,
+    }
+
+
+def get_all_metrics() -> List[InvocationMetrics]:
+    """
+    Return current buffered metrics.
+    """
+    return _METRICS_BUFFER
+
+
 def get_mock_invocations() -> List[InvocationMetrics]:
     return [
         InvocationMetrics(
