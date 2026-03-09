@@ -1,0 +1,28 @@
+[
+  {
+    "request_id": "req_obs_batch_001",
+    "total_ms": 980.0,
+    "llm_ms": 900.0,
+    "retrieval_ms": 15.0,
+    "engine": "workflow:legacy",
+    "status": "COMPLETED",
+    "prompt_tokens": 100,
+    "completion_tokens": 60,
+    "total_tokens": 160,
+    "cost": 0.0018,
+    "timestamp": "2026-03-09T00:01:00Z"
+  },
+  {
+    "request_id": "req_obs_batch_002",
+    "total_ms": 1430.2,
+    "llm_ms": 1360.0,
+    "retrieval_ms": 21.4,
+    "engine": "rag:qwen",
+    "status": "COMPLETED",
+    "prompt_tokens": 210,
+    "completion_tokens": 95,
+    "total_tokens": 305,
+    "cost": 0.0037,
+    "timestamp": "2026-03-09T00:02:00Z"
+  }
+]
