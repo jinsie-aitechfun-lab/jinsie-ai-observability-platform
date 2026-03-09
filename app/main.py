@@ -6,6 +6,7 @@ from app.service.metrics_collector import (
     build_summary,
     build_engine_summary,
     build_top_slowest,
+    build_recent_invocations,
     ingest_metrics,
     get_all_metrics,
 )
@@ -57,5 +58,15 @@ def metrics_top(
     top = build_top_slowest(invocations, limit=limit, engine=engine, status=status)
     return {
         "top": top,
+        "sample_size": len(invocations),
+    }
+
+
+@app.get("/metrics/recent")
+def metrics_recent(limit: int = Query(default=10, ge=1, le=100)):
+    invocations = get_all_metrics()
+    recent = build_recent_invocations(invocations, limit=limit)
+    return {
+        "recent": recent,
         "sample_size": len(invocations),
     }

@@ -181,3 +181,37 @@ def build_top_slowest(
         }
         for i in items
     ]
+
+
+def build_recent_invocations(invocations: List[InvocationMetrics], *, limit: int = 10) -> List[Dict[str, Any]]:
+    """
+    Return most recent N invocations based on ingestion order.
+    Newer items are returned first.
+    """
+    if not invocations:
+        return []
+
+    try:
+        n = int(limit)
+    except Exception:
+        n = 10
+
+    if n <= 0:
+        n = 10
+    if n > 100:
+        n = 100
+
+    items = list(reversed(invocations[-n:]))
+
+    return [
+        {
+            "request_id": i.request_id,
+            "engine": i.engine,
+            "status": i.status,
+            "timestamp": i.timestamp,
+            "total_ms": i.total_ms,
+            "llm_ms": i.llm_ms,
+            "retrieval_ms": i.retrieval_ms,
+        }
+        for i in items
+    ]
