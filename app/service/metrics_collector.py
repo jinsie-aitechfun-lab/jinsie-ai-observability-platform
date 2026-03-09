@@ -47,6 +47,10 @@ def get_mock_invocations() -> List[InvocationMetrics]:
             retrieval_ms=120.1,
             engine="qwen",
             status="COMPLETED",
+            prompt_tokens=120,
+            completion_tokens=240,
+            total_tokens=360,
+            cost=0.0027,
             timestamp="2026-03-03T10:01:02Z",
         ),
         InvocationMetrics(
@@ -56,6 +60,10 @@ def get_mock_invocations() -> List[InvocationMetrics]:
             retrieval_ms=95.0,
             engine="qwen",
             status="COMPLETED",
+            prompt_tokens=80,
+            completion_tokens=160,
+            total_tokens=240,
+            cost=0.0018,
             timestamp="2026-03-03T10:03:10Z",
         ),
         InvocationMetrics(
@@ -65,6 +73,10 @@ def get_mock_invocations() -> List[InvocationMetrics]:
             retrieval_ms=180.4,
             engine="siliconflow",
             status="DEGRADED",
+            prompt_tokens=150,
+            completion_tokens=320,
+            total_tokens=470,
+            cost=0.0035,
             timestamp="2026-03-03T10:05:55Z",
         ),
     ]
@@ -131,6 +143,38 @@ def build_engine_summary(invocations: List[InvocationMetrics]) -> Dict[str, Any]
     return out
 
 
+def build_cost_summary(invocations: List[InvocationMetrics]) -> Dict[str, Any]:
+    """
+    Aggregate token usage and cost metrics.
+    """
+    if not invocations:
+        return {
+            "total_requests": 0,
+            "total_prompt_tokens": 0,
+            "total_completion_tokens": 0,
+            "total_tokens": 0,
+            "total_cost": 0.0,
+            "avg_tokens": 0.0,
+            "avg_cost": 0.0,
+        }
+
+    total_requests = len(invocations)
+    total_prompt_tokens = sum(i.prompt_tokens for i in invocations)
+    total_completion_tokens = sum(i.completion_tokens for i in invocations)
+    total_tokens = sum(i.total_tokens for i in invocations)
+    total_cost = sum(i.cost for i in invocations)
+
+    return {
+        "total_requests": total_requests,
+        "total_prompt_tokens": total_prompt_tokens,
+        "total_completion_tokens": total_completion_tokens,
+        "total_tokens": total_tokens,
+        "total_cost": round(total_cost, 6),
+        "avg_tokens": round(total_tokens / total_requests, 2),
+        "avg_cost": round(total_cost / total_requests, 6),
+    }
+
+
 def build_top_slowest(
     invocations: List[InvocationMetrics],
     *,
@@ -178,6 +222,10 @@ def build_top_slowest(
             "total_ms": i.total_ms,
             "llm_ms": i.llm_ms,
             "retrieval_ms": i.retrieval_ms,
+            "prompt_tokens": i.prompt_tokens,
+            "completion_tokens": i.completion_tokens,
+            "total_tokens": i.total_tokens,
+            "cost": i.cost,
         }
         for i in items
     ]
@@ -212,6 +260,10 @@ def build_recent_invocations(invocations: List[InvocationMetrics], *, limit: int
             "total_ms": i.total_ms,
             "llm_ms": i.llm_ms,
             "retrieval_ms": i.retrieval_ms,
+            "prompt_tokens": i.prompt_tokens,
+            "completion_tokens": i.completion_tokens,
+            "total_tokens": i.total_tokens,
+            "cost": i.cost,
         }
         for i in items
     ]
