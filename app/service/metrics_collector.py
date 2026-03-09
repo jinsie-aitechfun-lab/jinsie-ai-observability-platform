@@ -86,3 +86,94 @@ def build_summary(invocations: List[InvocationMetrics]) -> Dict[str, Any]:
         "avg_llm_ms": round(sum_llm / total_calls, 2),
         "avg_retrieval_ms": round(sum_retrieval / total_calls, 2),
     }
+
+
+def build_engine_summary(invocations: List[InvocationMetrics]) -> Dict[str, Any]:
+    """
+    Aggregate metrics by engine.
+    Return shape:
+      {
+        "<engine>": {
+          "calls": <int>,
+          "avg_total_ms": <float>,
+          "avg_llm_ms": <float>,
+          "avg_retrieval_ms": <float>
+        },
+        ...
+      }
+    """
+    if not invocations:
+        return {}
+
+    buckets: Dict[str, List[InvocationMetrics]] = {}
+    for i in invocations:
+        key = (i.engine or "unknown").strip() or "unknown"
+        buckets.setdefault(key, []).append(i)
+
+    out: Dict[str, Any] = {}
+    for engine, items in buckets.items():
+        calls = len(items)
+        sum_total = sum(x.total_ms for x in items)
+        sum_llm = sum(x.llm_ms for x in items)
+        sum_retrieval = sum(x.retrieval_ms for x in items)
+
+        out[engine] = {
+            "calls": calls,
+            "avg_total_ms": round(sum_total / calls, 2),
+            "avg_llm_ms": round(sum_llm / calls, 2),
+            "avg_retrieval_ms": round(sum_retrieval / calls, 2),
+        }
+
+    return out
+
+
+def build_top_slowest(
+    invocations: List[InvocationMetrics],
+    *,
+    limit: int = 5,
+    engine: str | None = None,
+    status: str | None = None,
+) -> List[Dict[str, Any]]:
+    """
+    Return top-N slowest invocations by total_ms, optionally filtered by engine/status.
+    """
+    if not invocations:
+        return []
+
+    try:
+        n = int(limit)
+    except Exception:
+        n = 5
+
+    if n <= 0:
+        n = 5
+    if n > 50:
+        n = 50
+
+    engine_norm = (engine or "").strip().lower()
+    status_norm = (status or "").strip().lower()
+
+    filtered: List[InvocationMetrics] = []
+    for i in invocations:
+        if engine_norm:
+            if ((i.engine or "").strip().lower() != engine_norm):
+                continue
+        if status_norm:
+            if ((i.status or "").strip().lower() != status_norm):
+                continue
+        filtered.append(i)
+
+    items = sorted(filtered, key=lambda x: (x.total_ms or 0.0), reverse=True)[:n]
+
+    return [
+        {
+            "request_id": i.request_id,
+            "engine": i.engine,
+            "status": i.status,
+            "timestamp": i.timestamp,
+            "total_ms": i.total_ms,
+            "llm_ms": i.llm_ms,
+            "retrieval_ms": i.retrieval_ms,
+        }
+        for i in items
+    ]
