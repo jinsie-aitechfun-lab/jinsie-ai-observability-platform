@@ -8,6 +8,7 @@ from app.models import InvocationMetrics
 # -----------------------------
 # In-memory metrics buffer
 # -----------------------------
+MAX_BUFFER_SIZE = 1000
 _METRICS_BUFFER: List[InvocationMetrics] = []
 
 
@@ -18,6 +19,9 @@ def ingest_metrics(metrics: List[InvocationMetrics]) -> Dict[str, Any]:
     global _METRICS_BUFFER
 
     _METRICS_BUFFER.extend(metrics)
+
+    if len(_METRICS_BUFFER) > MAX_BUFFER_SIZE:
+        _METRICS_BUFFER[:] = _METRICS_BUFFER[-MAX_BUFFER_SIZE:]
 
     latest_ts = metrics[-1].timestamp if metrics else None
 
