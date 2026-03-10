@@ -11,8 +11,9 @@ UVICORN_CONDA := conda run -n py310 python -m uvicorn
 PORT ?= 8003
 APP ?= app.main:app
 BASE_URL ?= http://127.0.0.1:$(PORT)
+DEMO_INGEST_FILE ?= docs/samples/ingest_single.json
 
-.PHONY: run run-conda health acceptance ps kill
+.PHONY: run run-conda health acceptance ps kill demo-ingest
 
 run:
 	$(UVICORN) $(APP) --reload --host 127.0.0.1 --port $(PORT)
@@ -26,6 +27,12 @@ health:
 acceptance:
 	$(PYTHON) scripts/acceptance_ingest_recent.py --base-url $(BASE_URL)
 	$(PYTHON) scripts/acceptance.py --base-url $(BASE_URL)
+
+demo-ingest:
+	@echo "[INFO] POST $(DEMO_INGEST_FILE) -> $(BASE_URL)/metrics/ingest"
+	@curl -sS -X POST "$(BASE_URL)/metrics/ingest" \
+		-H "Content-Type: application/json" \
+		--data @"$(DEMO_INGEST_FILE)" && echo
 
 ps:
 	@lsof -nP -iTCP:$(PORT) -sTCP:LISTEN || true
