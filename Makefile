@@ -24,6 +24,7 @@ health:
 	@curl -s $(BASE_URL)/health && echo
 
 acceptance:
+	$(PYTHON) scripts/acceptance_ingest_recent.py --base-url $(BASE_URL)
 	$(PYTHON) scripts/acceptance.py --base-url $(BASE_URL)
 
 ps:
